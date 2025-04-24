@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capstone Idea Generator</title>
+  <link rel="stylesheet" href="homepage.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <ul>
+            <li><a href="homepage.html">Home</a></li>
+            <li><a href="">About</a></li>
+            <li><a href="">Developers</a></li>
+            <li><a href="">Missyou</a></li>
+        </ul>
+    </nav>
+    <main>Homepage</main>
+    
+
+  <div class="container">
+    <header>
+      <h1>Capstone Idea Generator</h1>
+    </header>
+
+    <div class="filters">
+      <label for="category">Select Category:</label>
+      <select id="category">
+        <option value="all">All</option>
+        <option value="web">Web Development</option>
+        <option value="mobile">Mobile Apps</option>
+        <option value="ai">Artificial Intelligence</option>
+        <option value="iot">IoT</option>
+        <option value="security">Cybersecurity</option>
+      </select>
+
+      <label>Difficulty:</label>
+      <div class="difficulty">
+        <button class="active" onclick="setDifficulty('all')">All</button>
+        <button onclick="setDifficulty('beginner')">Beginner</button>
+        <button onclick="setDifficulty('intermediate')">Intermediate</button>
+        <button onclick="setDifficulty('advanced')">Advanced</button>
+      </div>
+
+      <button onclick="generateIdea()" id="genidea">Generate Idea</button> <br>
+      <button onclick="logoutUser()" id="signout">Sign out </button>
+    </div>
+
+    <div class="results">
+      <h2>Generated Idea:</h2>
+
+      <p id="idea">Click the button to generate an idea!</p>
+    </div>
+  </div>
+
+  <script src="homepage.js"></script>
+  <script src="firebaseauth.js"></script>
+  <style>
+    
+    .chatbot-widget {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 350px;
+      height: 500px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 1000;
+      transform: translateY(100%);
+      opacity: 0;
+      transition: all 0.3s ease;
+    }
+    
+    .chatbot-widget.active {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .chatbot-header {
+      background: #000;
+      color: #fff;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .chatbot-header:hover {
+      background: #333;
+    }
+    
+    .chatbot-title {
+      font-weight: bold;
+      font-size: 16px;
+    }
+    
+    .chatbot-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    
+    .chatbot-close:hover {
+      transform: scale(1.2);
+    }
+    
+    .chatbot-messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+      background: #f8f8f8;
+    }
+    
+    .message {
+      margin-bottom: 15px;
+      max-width: 80%;
+      padding: 10px 15px;
+      border-radius: 18px;
+      line-height: 1.4;
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    .message:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    
+    .user-message {
+      background: #000;
+      color: white;
+      margin-left: auto;
+      border-bottom-right-radius: 5px;
+    }
+    
+    .bot-message {
+      background: #fff;
+      color: #000;
+      margin-right: auto;
+      border: 1px solid #ddd;
+      border-bottom-left-radius: 5px;
+    }
+    
+    .chatbot-input-container {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ddd;
+      background: white;
+    }
+    
+    .chatbot-input {
+      flex: 1;
+      padding: 10px 15px;
+      border: 1px solid #ddd;
+      border-radius: 20px;
+      outline: none;
+      transition: border 0.2s ease;
+    }
+    
+    .chatbot-input:focus {
+      border-color: #000;
+    }
+    
+    .chatbot-send {
+      background: #000;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      margin-left: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s ease, transform 0.2s ease;
+    }
+    
+    .chatbot-send:hover {
+      background: #333;
+      transform: scale(1.05);
+    }
+    
+    .chatbot-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 60px;
+      height: 60px;
+      background: #000;
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      z-index: 999;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    
+    .chatbot-toggle:hover {
+      background: #333;
+      transform: scale(1.05);
+    }
+    
+    /* Typing indicator */
+    .typing-indicator {
+      display: flex;
+      padding: 10px 15px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 18px;
+      margin-bottom: 15px;
+      width: fit-content;
+      border-bottom-left-radius: 5px;
+    }
+    
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      background: #666;
+      border-radius: 50%;
+      margin: 0 2px;
+      animation: typingAnimation 1.4s infinite ease-in-out;
+    }
+    
+    .typing-dot:nth-child(1) {
+      animation-delay: 0s;
+    }
+    
+    .typing-dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .typing-dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    
+    @keyframes typingAnimation {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-3px); }
+    }
+    
+    /* Scrollbar styling */
+    .chatbot-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    
+    .chatbot-messages::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .chatbot-messages::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+    
+    .chatbot-messages::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body>
+  <!-- Chatbot toggle button -->
+  <button class="chatbot-toggle" id="chatbotToggle">💬</button>
+  
+  <!-- Chatbot widget -->
+  <div class="chatbot-widget" id="chatbotWidget">
+    <div class="chatbot-header" id="chatbotHeader">
+      <div class="chatbot-title">Chat Assistant</div>
+      <button class="chatbot-close" id="chatbotClose">×</button>
+    </div>
+    <div class="chatbot-messages" id="chatbotMessages">
+      
+    </div>
+    <div class="chatbot-input-container">
+      <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Type your message...">
+      <button class="chatbot-send" id="chatbotSend">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // DOM elements
+      const chatbotToggle = document.getElementById('chatbotToggle');
+      const chatbotWidget = document.getElementById('chatbotWidget');
+      const chatbotClose = document.getElementById('chatbotClose');
+      const chatbotMessages = document.getElementById('chatbotMessages');
+      const chatbotInput = document.getElementById('chatbotInput');
+      const chatbotSend = document.getElementById('chatbotSend');
+      const chatbotHeader = document.getElementById('chatbotHeader');
+      
+      // Initial bot greeting
+      const greetingMessage = "Hello! I'm your helpful assistant. How can I help you today?";
+      addBotMessage(greetingMessage);
+      
+      // Toggle chatbot visibility
+      chatbotToggle.addEventListener('click', toggleChatbot);
+      chatbotClose.addEventListener('click', toggleChatbot);
+      chatbotHeader.addEventListener('click', toggleChatbot);
+      
+      // Send message on button click or Enter key
+      chatbotSend.addEventListener('click', sendMessage);
+      chatbotInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          sendMessage();
+        }
+      });
+      
+      function toggleChatbot() {
+        chatbotWidget.classList.toggle('active');
+        chatbotToggle.style.display = chatbotWidget.classList.contains('active') ? 'none' : 'block';
+        
+        // Focus input when opening
+        if (chatbotWidget.classList.contains('active')) {
+          setTimeout(() => {
+            chatbotInput.focus();
+          }, 300);
+        }
+      }
+      
+      async function sendMessage() {
+        const message = chatbotInput.value.trim();
+        if (!message) return;
+        
+        addUserMessage(message);
+        chatbotInput.value = '';
+        showTypingIndicator();
+        
+        try {
+          const response = await fetch(
+            'https://openrouter.ai/api/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: 'Bearer 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',
+                'HTTP-Referer': 'https://www.sitename.com',
+                'X-Title': 'SiteName',
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                model: 'deepseek/deepseek-r1:free',
+                messages: [{ role: 'user', content: message }],
+              }),
+            }
+          );
+          
+          const data = await response.json();
+          removeTypingIndicator();
+          
+          const markdownText = data.choices?.[0]?.message?.content || 'No response received.';
+          const htmlResponse = marked.parse(markdownText);
+          addBotMessage(htmlResponse);
+        } catch (error) {
+          removeTypingIndicator();
+          addBotMessage('Error: ' + error.message);
+        }
+      }
+      
+      function addUserMessage(text) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user-message';
+        messageDiv.textContent = text;
+        chatbotMessages.appendChild(messageDiv);
+        scrollToBottom();
+      }
+      
+      function addBotMessage(html) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message bot-message';
+        messageDiv.innerHTML = html;
+        chatbotMessages.appendChild(messageDiv);
+        scrollToBottom();
+      }
+      
+      function showTypingIndicator() {
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'typing-indicator';
+        typingDiv.id = 'typingIndicator';
+        typingDiv.innerHTML = `
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        `;
+        chatbotMessages.appendChild(typingDiv);
+        scrollToBottom();
+      }
+      
+      function removeTypingIndicator() {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (typingIndicator) {
+          typingIndicator.remove();
+        }
+      }
+      
+      function scrollToBottom() {
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+      }
+      
+      // Initialize with chatbot hidden
+      setTimeout(() => {
+        chatbotWidget.style.display = 'flex'; // Show after styles are loaded to avoid FOUC
+      }, 100);
+    });
+  </script>
+
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyDrynZzCc_DTjZ__xvjhbbpEyOEESXKYbU",
+    authDomain: "generator-b411e.firebaseapp.com",
+    projectId: "generator-b411e",
+    storageBucket: "generator-b411e.firebasestorage.app",
+    messagingSenderId: "1075205473961",
+    appId: "1:1075205473961:web:6be8a3c205a61e19b4cbb8"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
+</body>
+
+</html>
